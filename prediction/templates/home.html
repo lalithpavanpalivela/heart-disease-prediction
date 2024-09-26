@@ -1,0 +1,417 @@
+<!-- prediction/templates/home.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Disease Prediction</title>
+    {% load static %}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+        background: url("{% static 'bg1.jpeg' %}") no-repeat center center fixed;
+        background-size: cover;
+        position: relative;
+        }
+
+        /* Overlay for the second background */
+        body::before {
+            content: '';
+            background: url("{% static 'bg2.jpeg' %}") no-repeat center center fixed;
+            background-size: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.75; /* 75% transparent */
+            z-index: 1; /* Places the overlay behind the content */
+        }
+
+        /* Make the first background image 50% transparent */
+        .container {
+            position: relative;
+            z-index: 2; /* Ensure the form is above both backgrounds */
+            background-color: rgba(255, 255, 255, 0.5); /* Form container with 50% white background transparency */
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        .info {
+            color: #007bff;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Heart Disease Prediction</h1>
+        <form method="POST" action="/predict/">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="age">Enter your age <span class="info" data-toggle="modal" data-target="#ageInfo"> ( ? )</span>:</label>
+                <input type="number" class="form-control" id="age" name="age" required>
+            </div>
+
+            <div class="form-group">
+                <label for="sex">What is your sex <span class="info" data-toggle="modal" data-target="#sexInfo"> ( ? )</span>:</label><br>
+                <input type="radio" id="male" name="sex" value="1" required> Male
+                <input type="radio" id="female" name="sex" value="0" required> Female
+            </div>
+
+            <div class="form-group">
+                <label for="cp">Do you experience chest pain? If yes, choose type <span class="info" data-toggle="modal" data-target="#cpInfo"> ( ? )</span>:</label>
+                <select id="cp" class="form-control" name="cp" required>
+                    <option value="0">Typical Angina</option>
+                    <option value="1">Atypical Angina</option>
+                    <option value="2">Non-Anginal</option>
+                    <option value="3">Asymptomatic</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="restingbp">What is your resting blood pressure (mm Hg) <span class="info" data-toggle="modal" data-target="#restingbpInfo"> ( ? )</span>:</label>
+                <input type="number" class="form-control" id="restingbp" name="restingbp" required>
+            </div>
+
+            <div class="form-group">
+                <label for="cholesterol">What is your cholesterol level (mg/dl) <span class="info" data-toggle="modal" data-target="#cholesterolInfo"> ( ? )</span>:</label>
+                <input type="number" class="form-control" id="cholesterol" name="cholesterol" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fastingbs">Is your fasting blood sugar > 120 mg/dl? <span class="info" data-toggle="modal" data-target="#fastingbsInfo"> ( ? )</span>:</label><br>
+                <input type="radio" id="yes" name="fastingbs" value="1" required> Yes
+                <input type="radio" id="no" name="fastingbs" value="0" required> No
+            </div>
+
+            <div class="form-group">
+                <label for="restingecg">What is your resting ECG result? <span class="info" data-toggle="modal" data-target="#restingecgInfo"> ( ? )</span>:</label>
+                <select id="restingecg" class="form-control" name="restingecg" required>
+                    <option value="0">Normal</option>
+                    <option value="1">ST-T Abnormality</option>
+                    <option value="2">Left Ventricular Hypertrophy</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="maxhr">What is your maximum heart rate? <span class="info" data-toggle="modal" data-target="#maxhrInfo"> ( ? )</span>:</label>
+                <input type="number" class="form-control" id="maxhr" name="maxhr" required>
+            </div>
+
+            <div class="form-group">
+                <label for="exerciseangina">Do you experience angina during exercise? <span class="info" data-toggle="modal" data-target="#exerciseanginaInfo"> ( ? )</span>:</label><br>
+                <input type="radio" id="yes" name="exerciseangina" value="1" required> Yes
+                <input type="radio" id="no" name="exerciseangina" value="0" required> No
+            </div>
+
+            <div class="form-group">
+                <label for="oldpeak">Enter Oldpeak value <span class="info" data-toggle="modal" data-target="#oldpeakInfo"> ( ? )</span>:</label>
+                <input type="number" step="0.1" class="form-control" id="oldpeak" name="oldpeak" required>
+            </div>
+
+            <div class="form-group">
+                <label for="st_slope">What is your ST Slope? <span class="info" data-toggle="modal" data-target="#stslopeInfo"> ( ? )</span>:</label>
+                <select id="st_slope" class="form-control" name="st_slope" required>
+                    <option value="0">Upsloping</option>
+                    <option value="1">Flat</option>
+                    <option value="2">Downsloping</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Predict</button>
+        </form>
+    </div>
+
+    <!-- Bootstrap Modals for Information -->
+    <!-- Age Modal -->
+    <div class="modal fade" id="ageInfo" tabindex="-1" role="dialog" aria-labelledby="ageInfoTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ageInfoTitle">Age Information</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Age is a crucial factor in heart disease risk assessment. As you age, your heart weakens, and your risk increases.
+                    <br><br>
+                    <strong>Why Age is Important:</strong><br>
+                    - Men over 45 and women over 55 have a higher risk.<br>
+                    <strong>Further Reading:</strong>
+                    <a href="https://www.cdc.gov/heartdisease/facts.htm" target="_blank">CDC: Heart Disease Facts</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sex Modal -->
+    <div class="modal fade" id="sexInfo" tabindex="-1" role="dialog" aria-labelledby="sexInfoTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="sexInfoTitle">Sex Information</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Sex impacts heart disease risk. Men are generally at higher risk at an earlier age compared to women.
+                    <br><br>
+                    <strong>Risk Factors:</strong><br>
+                    - Men have a higher risk until women catch up after menopause.<br>
+                    <strong>Further Reading:</strong>
+                    <a href="https://www.who.int/news-room/fact-sheets/detail/cardiovascular-diseases-(cvds)" target="_blank">WHO: Cardiovascular Diseases</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sex Modal -->
+    <div class="modal fade" id="sexInfo" tabindex="-1" role="dialog" aria-labelledby="sexInfoTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="sexInfoTitle">Sex Information</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Sex impacts heart disease risk. Men are generally at higher risk at an earlier age compared to women.
+                    <br><br>
+                    <strong>Risk Factors:</strong><br>
+                    - Men have a higher risk until women catch up after menopause.<br>
+                    <strong>Further Reading:</strong>
+                    <a href="https://www.who.int/news-room/fact-sheets/detail/cardiovascular-diseases-(cvds)" target="_blank">WHO: Cardiovascular Diseases</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+    <!-- Chest Pain Modal -->
+    <div class="modal fade" id="cpInfo" tabindex="-1" role="dialog" aria-labelledby="cpInfoTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cpInfoTitle">Chest Pain Information</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Chest pain is a common symptom of heart disease. There are four main types of chest pain to assess:
+                    <ul>
+                        <li><strong>Typical Angina</strong>: Pain or discomfort in the chest, often triggered by exertion.</li>
+                        <li><strong>Atypical Angina</strong>: Unusual pain that may not always be triggered by exertion.</li>
+                        <li><strong>Non-Anginal</strong>: Pain not related to heart conditions.</li>
+                        <li><strong>Asymptomatic</strong>: No chest pain, but heart disease may still be present.</li>
+                    </ul>
+                    <strong>Further Reading:</strong>
+                    <a href="https://www.webmd.com/heart-disease/guide/heart-disease-symptoms-types" target="_blank">WebMD: Types of Chest Pain</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resting BP Modal -->
+    <div class="modal fade" id="restingbpInfo" tabindex="-1" role="dialog" aria-labelledby="restingbpInfoTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="restingbpInfoTitle">Resting Blood Pressure Information</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Resting blood pressure is the pressure in your arteries when your heart is resting between beats. A normal resting blood pressure is typically around 120/80 mm Hg. Higher blood pressure levels may indicate cardiovascular issues.
+                    <br><br>
+                    <strong>Why is it important?</strong><br>
+                    - Hypertension (high blood pressure) can increase the risk of heart disease and stroke.
+                    <br>
+                    <strong>Further Reading:</strong>
+                    <a href="https://www.heart.org/en/health-topics/high-blood-pressure" target="_blank">American Heart Association: High Blood Pressure</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cholesterol Modal -->
+    <div class="modal fade" id="cholesterolInfo" tabindex="-1" role="dialog" aria-labelledby="cholesterolInfoTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cholesterolInfoTitle">Cholesterol Information</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Cholesterol is a fatty substance in the blood that helps build cells. However, high cholesterol levels can lead to a buildup of plaques in arteries, increasing the risk of heart disease and stroke.
+                    <br><br>
+                    <strong>Types of Cholesterol:</strong><br>
+                    - LDL (Bad cholesterol): Can lead to clogged arteries.<br>
+                    - HDL (Good cholesterol): Helps clear bad cholesterol.<br>
+                    <strong>Further Reading:</strong>
+                    <a href="https://www.cdc.gov/cholesterol/index.htm" target="_blank">CDC: Cholesterol</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fasting Blood Sugar Modal -->
+    <div class="modal fade" id="fastingbsInfo" tabindex="-1" role="dialog" aria-labelledby="fastingbsInfoTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="fastingbsInfoTitle">Fasting Blood Sugar Information</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Fasting blood sugar levels indicate the glucose in your blood after you haven't eaten for at least 8 hours. A fasting blood sugar above 120 mg/dl is considered high and may indicate diabetes.
+                    <br><br>
+                    <strong>Why is it important?</strong><br>
+                    - Diabetes is a major risk factor for heart disease.
+                    <br>
+                    <strong>Further Reading:</strong>
+                    <a href="https://www.diabetes.org/diabetes" target="_blank">American Diabetes Association: What is Diabetes?</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resting ECG Modal -->
+    <div class="modal fade" id="restingecgInfo" tabindex="-1" role="dialog" aria-labelledby="restingecgInfoTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="restingecgInfoTitle">Resting ECG Information</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Resting ECG measures the electrical activity of the heart when you're at rest. It helps detect abnormalities such as ST-T changes or Left Ventricular Hypertrophy, which may be indicators of heart disease.
+                    <br><br>
+                    <strong>Why is it important?</strong><br>
+                    - Abnormal ECG readings could signal heart disease or arrhythmia.
+                    <br>
+                    <strong>Further Reading:</strong>
+                    <a href="https://www.mayoclinic.org/tests-procedures/ekg/about/pac-20384983" target="_blank">Mayo Clinic: ECG</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Max Heart Rate Modal -->
+    <div class="modal fade" id="maxhrInfo" tabindex="-1" role="dialog" aria-labelledby="maxhrInfoTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="maxhrInfoTitle">Maximum Heart Rate Information</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Your maximum heart rate is the highest rate your heart can reach during physical exertion. Knowing your maximum heart rate helps gauge exercise tolerance and fitness levels.
+                    <br><br>
+                    <strong>Further Reading:</strong>
+                    <a href="https://www.heart.org/en/healthy-living/fitness/fitness-basics/target-heart-rates" target="_blank">American Heart Association: Target Heart Rate</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exercise Angina Modal -->
+    <div class="modal fade" id="exerciseanginaInfo" tabindex="-1" role="dialog" aria-labelledby="exerciseanginaInfoTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exerciseanginaInfoTitle">Exercise-Induced Angina Information</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Exercise-induced angina refers to chest pain that occurs during physical activity. It’s a sign that your heart may not be getting enough oxygen-rich blood during exertion.
+                    <br><br>
+                    <strong>Further Reading:</strong>
+                    <a href="https://www.health.harvard.edu/heart-health/angina-causes-and-treatment" target="_blank">Harvard Health: Angina Causes and Treatment</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Oldpeak Modal -->
+    <div class="modal fade" id="oldpeakInfo" tabindex="-1" role="dialog" aria-labelledby="oldpeakInfoTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="oldpeakInfoTitle">Oldpeak Information</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Oldpeak represents the ST depression in an ECG measurement and indicates possible heart disease when there's a decrease in the heart’s oxygen supply during exercise.
+                    <br><br>
+                    <strong>Why it’s important:</strong><br>
+                    - It measures the difference between heart activity at rest and during exercise, helping doctors evaluate the severity of coronary artery disease.
+                    <br>
+                    <strong>Further Reading:</strong>
+                    <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6059936/" target="_blank">NCBI: ST Depression</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ST Slope Modal -->
+    <div class="modal fade" id="stslopeInfo" tabindex="-1" role="dialog" aria-labelledby="stslopeInfoTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="stslopeInfoTitle">ST Slope Information</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    The ST slope refers to the trend or direction of the ST segment in an ECG graph. An upslope, flat, or downsloping ST segment can help diagnose the severity of heart conditions.
+                    <br><br>
+                    <strong>ST Slope Types:</strong><br>
+                    - Upsloping: Less worrisome.<br>
+                    - Flat: Indicative of potential ischemia.<br>
+                    - Downsloping: Often indicates serious heart disease.<br>
+                    <strong>Further Reading:</strong>
+                    <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2828211/" target="_blank">NCBI: The Prognostic Value of ST Segment Changes</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+
