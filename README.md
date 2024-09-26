@@ -38,7 +38,7 @@ This web application predicts the likelihood of heart disease based on key medic
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/heart-disease-prediction.git
+   git clone https://github.com/lalithpavanpalivela/heart-disease-prediction.git
    cd heart-disease-prediction
    ```
 
